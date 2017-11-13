@@ -1,5 +1,9 @@
 ﻿# CHANGELOG
 
+## Version 1.6.0
+- New helper: Get-VisualStudioInstallerHealth (checks for corruption observed sometimes after installer update)
+- Install-VisualStudioInstaller will check for installer corruption after update and will attempt to repair the installer by renaming the installer directory and retrying the update.
+
 ## Version 1.5.0
 - New helpers: Add-VisualStudioComponent, Remove-VisualStudioComponent
 - New package parameter: '--layout D:\Path' can be used to create an offline installation source ("layout").
