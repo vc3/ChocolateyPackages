@@ -42,17 +42,17 @@
 
     for ($i = 0; $i -lt $ArgumentList.Length; $i += 2)
     {
-        $packageParameters[$ArgumentList[$i]] = $ArgumentList[$i + 1]
+        $PackageParameters[$ArgumentList[$i]] = $ArgumentList[$i + 1]
     }
 
-    $packageParameters['norestart'] = ''
-    if (-not $packageParameters.ContainsKey('quiet') -and -not $packageParameters.ContainsKey('passive'))
+    $PackageParameters['norestart'] = ''
+    if (-not $PackageParameters.ContainsKey('quiet') -and -not $PackageParameters.ContainsKey('passive'))
     {
-        $packageParameters['quiet'] = ''
+        $PackageParameters['quiet'] = ''
     }
 
     # --no-foo cancels --foo
-    $negativeSwitches = $packageParameters.GetEnumerator() | Where-Object { $_.Key -match '^no-.' -and $_.Value -eq '' } | Select-Object -ExpandProperty Key
+    $negativeSwitches = $PackageParameters.GetEnumerator() | Where-Object { $_.Key -match '^no-.' -and $_.Value -eq '' } | Select-Object -ExpandProperty Key
     foreach ($negativeSwitch in $negativeSwitches)
     {
         if ($negativeSwitch -eq $null)
@@ -60,31 +60,31 @@
             continue
         }
 
-        $packageParameters.Remove($negativeSwitch.Substring(3))
-        $packageParameters.Remove($negativeSwitch)
+        $PackageParameters.Remove($negativeSwitch.Substring(3))
+        $PackageParameters.Remove($negativeSwitch)
     }
 
-    $argumentSets = ,$packageParameters
-    if ($packageParameters.ContainsKey('installPath'))
+    $argumentSets = ,$PackageParameters
+    if ($PackageParameters.ContainsKey('installPath'))
     {
-        if ($packageParameters.ContainsKey('productId'))
+        if ($PackageParameters.ContainsKey('productId'))
         {
             Write-Warning 'Parameter issue: productId is ignored when installPath is specified.'
         }
 
-        if ($packageParameters.ContainsKey('channelId'))
+        if ($PackageParameters.ContainsKey('channelId'))
         {
             Write-Warning 'Parameter issue: channelId is ignored when installPath is specified.'
         }
     }
-    elseif ($packageParameters.ContainsKey('productId'))
+    elseif ($PackageParameters.ContainsKey('productId'))
     {
-        if (-not $packageParameters.ContainsKey('channelId'))
+        if (-not $PackageParameters.ContainsKey('channelId'))
         {
             throw "Parameter error: when productId is specified, channelId must be specified, too."
         }
     }
-    elseif ($packageParameters.ContainsKey('channelId'))
+    elseif ($PackageParameters.ContainsKey('channelId'))
     {
         throw "Parameter error: when channelId is specified, productId must be specified, too."
     }
@@ -98,15 +98,15 @@
 
         if ($Operation -eq 'modify')
         {
-            if ($packageParameters.ContainsKey('add'))
+            if ($PackageParameters.ContainsKey('add'))
             {
-                $packageIdsList = $packageParameters['add']
+                $packageIdsList = $PackageParameters['add']
                 $unwantedPackageSelector = { $productInfo.selectedPackages.ContainsKey($_) }
                 $unwantedStateDescription = 'contains'
             }
-            elseif ($packageParameters.ContainsKey('remove'))
+            elseif ($PackageParameters.ContainsKey('remove'))
             {
-                $packageIdsList = $packageParameters['remove']
+                $packageIdsList = $PackageParameters['remove']
                 $unwantedPackageSelector = { -not $productInfo.selectedPackages.ContainsKey($_) }
                 $unwantedStateDescription = 'does not contain'
             }
@@ -179,7 +179,7 @@
                 }
             }
 
-            $argumentSet = $packageParameters.Clone()
+            $argumentSet = $PackageParameters.Clone()
             $argumentSet['installPath'] = $productInfo.installationPath
             $argumentSets += $argumentSet
         }
