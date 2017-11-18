@@ -181,16 +181,12 @@
 
             $argumentSet = $PackageParameters.Clone()
             $argumentSet['installPath'] = $productInfo.installationPath
+            $argumentSet['__internal_productReference'] = New-VSProductReference -ChannelId $productInfo.channelId -ProductId $productInfo.productid
             $argumentSets += $argumentSet
         }
     }
 
-    # todo: move this inside the foreach, so that we can take advantage of channelId
-    if ($Operation -ne 'uninstall')
-    {
-        Install-VSInstaller -PackageName $PackageName -PackageParameters $PackageParameters -ProductReference $ProductReference -Url $BootstrapperUrl -Checksum $BootstrapperChecksum -ChecksumType $BootstrapperChecksumType -Force
-    }
-
+    $installerUpdated = $false
     $overallExitCode = 0
     foreach ($argumentSet in $argumentSets)
     {
@@ -201,6 +197,23 @@
         else
         {
             Write-Debug "Modifying Visual Studio product: [productId = '$($argumentSet.productId)' channelId = '$($argumentSet.channelId)']"
+        }
+
+        $thisProductReference = $ProductReference
+        if ($argumentSet.ContainsKey('__internal_productReference'))
+        {
+            $thisProductReference = $argumentSet['__internal_productReference']
+            $argumentSet.Remove('__internal_productReference')
+        }
+
+        if ($Operation -ne 'uninstall' -and -not $installerUpdated)
+        {
+            if ($PSCmdlet.ShouldProcess("Visual Studio Installer", "update"))
+            {
+                # TODO: download VS component manifest and determine required engine version
+                Install-VSInstaller -PackageName $PackageName -PackageParameters $PackageParameters -ProductReference $thisProductReference -Url $BootstrapperUrl -Checksum $BootstrapperChecksum -ChecksumType $BootstrapperChecksumType -Force
+                $installerUpdated = $true
+            }
         }
 
         foreach ($kvp in $argumentSet.Clone().GetEnumerator())
