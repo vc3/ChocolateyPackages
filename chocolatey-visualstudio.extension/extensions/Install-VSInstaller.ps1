@@ -98,7 +98,7 @@ function Install-VSInstaller
         }
     }
 
-    $whitelist = @('offline')
+    $whitelist = @('quiet', 'offline')
     $parametersToRemove = $PackageParameters.Keys | Where-Object { $whitelist -notcontains $_ }
     foreach ($parameterToRemove in $parametersToRemove)
     {
@@ -106,9 +106,10 @@ function Install-VSInstaller
         $PackageParameters.Remove($parameterToRemove)
     }
 
+    $packageParameters['quiet'] = $null
     $silentArgsFromParameters = ($packageParameters.GetEnumerator() | ForEach-Object { '--{0} {1}' -f $_.Key, $_.Value }) -f ' '
     # --update must be last
-    $silentArgs = "--quiet $silentArgsFromParameters --update"
+    $silentArgs = "$silentArgsFromParameters --update"
     $arguments = @{
         packageName = 'Visual Studio Installer'
         silentArgs = $silentArgs
