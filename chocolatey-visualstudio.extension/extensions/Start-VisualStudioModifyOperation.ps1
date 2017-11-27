@@ -174,18 +174,7 @@
         }
     }
 
-    $shouldFixInstaller = $false
-    $installer = Get-VisualStudioInstaller
-    if ($installer -eq $null)
-    {
-        $shouldFixInstaller = $true
-    }
-    else
-    {
-        $health = $installer | Get-VisualStudioInstallerHealth
-        $shouldFixInstaller = -not $health.IsHealthy
-    }
-
+    $installer = $null
     $installerUpdated = $false
     $overallExitCode = 0
     foreach ($argumentSet in $argumentSets)
@@ -206,6 +195,21 @@
             $argumentSet.Remove('__internal_productReference')
         }
 
+        $shouldFixInstaller = $false
+        if ($installer -eq $null)
+        {
+            $installer = Get-VisualStudioInstaller
+            if ($installer -eq $null)
+            {
+                $shouldFixInstaller = $true
+            }
+            else
+            {
+                $health = $installer | Get-VisualStudioInstallerHealth
+                $shouldFixInstaller = -not $health.IsHealthy
+            }
+        }
+
         if ($shouldFixInstaller -or ($Operation -ne 'uninstall' -and -not $installerUpdated))
         {
             if ($PSCmdlet.ShouldProcess("Visual Studio Installer", "update"))
@@ -218,11 +222,12 @@
                 $installerUpdated = $true
                 $shouldFixInstaller = $false
                 $installer = Get-VisualStudioInstaller
-                if ($installer -eq $null)
-                {
-                    throw 'The Visual Studio Installer is not present even after an attempt to reinstall it. Unable to continue.'
-                }
             }
+        }
+
+        if ($installer -eq $null)
+        {
+            throw 'The Visual Studio Installer is not present. Unable to continue.'
         }
 
         foreach ($kvp in $argumentSet.Clone().GetEnumerator())
