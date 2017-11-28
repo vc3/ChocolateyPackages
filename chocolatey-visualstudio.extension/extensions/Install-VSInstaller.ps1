@@ -106,6 +106,9 @@ function Install-VSInstaller
         $PackageParameters.Remove($parameterToRemove)
     }
 
+    # TODO: if bootstrapperPath present, check for existence of vs_installer.opc and auto add --offline
+    # TODO: same for installLayoutPath
+
     $packageParameters['quiet'] = $null
     $silentArgsFromParameters = ($packageParameters.GetEnumerator() | ForEach-Object { '--{0} {1}' -f $_.Key, $_.Value }) -f ' '
     # --update must be last
