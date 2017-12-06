@@ -119,6 +119,11 @@ Install-ChocolateyPackage
         Write-Debug "Log file path: $logFilePath"
     }
 
+    if ($assumeNewVS2017Installer)
+    {
+        Assert-VSInstallerUpdated -PackageName $PackageName -PackageParameters $packageParameters -ProductReference $productReference -Url $Url -Checksum $Checksum -ChecksumType $ChecksumType
+    }
+
     if ($packageParameters.ContainsKey('bootstrapperPath'))
     {
         $installerFilePath = $packageParameters['bootstrapperPath']
@@ -128,11 +133,6 @@ Install-ChocolateyPackage
     else
     {
         $installerFilePath = $null
-    }
-
-    if ($assumeNewVS2017Installer)
-    {
-        Assert-VSInstallerUpdated -PackageName $PackageName -PackageParameters $packageParameters -ProductReference $productReference -Url $Url -Checksum $Checksum -ChecksumType $ChecksumType
     }
 
     $silentArgs = Generate-InstallArgumentsString -parameters $packageParameters -adminFile $adminFile -logFilePath $logFilePath -assumeNewVS2017Installer:$assumeNewVS2017Installer
