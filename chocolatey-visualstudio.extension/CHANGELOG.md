@@ -4,6 +4,10 @@
 - New helper: Get-VisualStudioInstallerHealth (checks for corruption observed sometimes after installer update)
 - Install-VisualStudioInstaller will check for installer corruption after update and will attempt to repair the installer by renaming the installer directory and retrying the update.
 
+## Version 1.5.1
+- Changed the method of locating the VS 2017 installer during modify and uninstall operations to not depend on Uninstall registry
+  keys anymore. This avoids the problem caused by registry key changes in a recent VS 2017 update.
+
 ## Version 1.5.0
 - New helpers: Add-VisualStudioComponent, Remove-VisualStudioComponent
 - New package parameter: '--layout D:\Path' can be used to create an offline installation source ("layout").
