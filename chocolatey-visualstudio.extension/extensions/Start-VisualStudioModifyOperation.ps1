@@ -43,18 +43,8 @@
         $PackageParameters['quiet'] = ''
     }
 
-    # --no-foo cancels --foo
-    $negativeSwitches = $PackageParameters.GetEnumerator() | Where-Object { $_.Key -match '^no-.' -and $_.Value -eq '' } | Select-Object -ExpandProperty Key
-    foreach ($negativeSwitch in $negativeSwitches)
-    {
-        if ($negativeSwitch -eq $null)
-        {
-            continue
-        }
-
-        $PackageParameters.Remove($negativeSwitch.Substring(3))
-        $PackageParameters.Remove($negativeSwitch)
-    }
+    # TODO: move this closer to actual installer/bootstrapper invocation
+    Remove-VSNegatedPackageParameters -PackageParameters $PackageParameters -RemoveNegativeSwitches
 
     $argumentSets = ,$PackageParameters
     if ($PackageParameters.ContainsKey('installPath'))
@@ -260,17 +250,7 @@
         }
 
         $blacklist = @('bootstrapperPath', 'installLayoutPath')
-        $parametersToRemove = $argumentSet.Keys | Where-Object { $blacklist -contains $_ }
-        foreach ($parameterToRemove in $parametersToRemove)
-        {
-            if ($parameterToRemove -eq $null)
-            {
-                continue
-            }
-
-            Write-Debug "Filtering out package parameter not passed to the VS Installer: '$parameterToRemove'"
-            $argumentSet.Remove($parameterToRemove)
-        }
+        Remove-VSPackageParametersNotPassedToNativeInstaller -PackageParameters $argumentSet -TargetDescription 'VS Installer' -Blacklist $blacklist
 
         foreach ($kvp in $argumentSet.Clone().GetEnumerator())
         {
