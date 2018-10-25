@@ -24,6 +24,7 @@ if ($p.ExitCode -eq 0) {
 }
 
 # after reboot
+# Server 2012 R2: install recommended updates, reboot
 # open PowerShell as admin
 
 cd \
