@@ -1,4 +1,6 @@
-﻿# for improved reliability, pause Windows updates via the Settings app
+﻿# tested on: Windows 10 1803, Windows Server 2016, Windows Server 2012 R2 with all updates classified as Important
+
+# for improved reliability, pause Windows updates via the Settings app
 # open PowerShell as admin
 cd \
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force
@@ -24,7 +26,7 @@ if ($p.ExitCode -eq 0) {
 }
 
 # after reboot
-# Server 2012 R2: install recommended updates, reboot
+# Server 2012 R2: install Recommended updates, reboot
 # open PowerShell as admin
 
 cd \
@@ -85,6 +87,9 @@ Start-DscConfiguration -Path 'C:\Install' -ComputerName 'localhost' -Verbose -Wa
 control appwiz.cpl
 C:\Install\Collect.exe
 
+<#
+variant: try to run as other user than SYSTEM
+(does not help)
 
 $cd = @{
     AllNodes = @(
@@ -96,4 +101,5 @@ $cd = @{
 }
                 #PsDscRunAsCredential = (Get-Credential -Credential "${Env:ComputerName}\userfordsc") # fails with this too
  -ConfigurationData $cd
+ #>
  
