@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>visualstudio2017buildtools</id>
-    <version>15.8.6.0</version>
+    <version>15.9.7.0</version>
     <packageSourceUrl>https://github.com/jberezanski/ChocolateyPackages/tree/master/visualstudio2017buildtools</packageSourceUrl>
     <owners>jberezanski</owners>
     <title>Visual Studio 2017 Build Tools</title>
@@ -18,18 +18,13 @@
     <summary>Build Tools allow you to build native and managed MSBuild-based applications without requiring the Visual Studio IDE.</summary>
     <description>
 ### Overview
-
 These Build Tools allow you to build native and managed MSBuild-based applications without requiring the Visual Studio IDE. There are options to install the Visual C++ compilers and libraries, MFC, ATL, and C++/CLI support.
 
 To find out what's new or to see the known issues, see the [Visual Studio 2017 Release Notes](https://www.visualstudio.com/en-us/news/releasenotes/vs2017-relnotes).  
 [System requirements](https://www.visualstudio.com/en-us/productinfo/vs2017-system-requirements-vs)
 
-### Customizations
-
-By default, the package installs only the bare minimum required (the MSBuild Tools workload). The easiest way to add more workloads is to use the workload packages:
-- [.NET Core build tools](https://chocolatey.org/packages/visualstudio2017-workload-netcorebuildtools)
-- [Visual C++ build tools](https://chocolatey.org/packages/visualstudio2017-workload-vctools)
-- [Web development build tools](https://chocolatey.org/packages/visualstudio2017-workload-webbuildtools).
+### Customizations and Optional features
+By default, the package installs only the bare minimum required (the MSBuild Tools workload). The easiest way to add more development features is to use the workload packages listed in the Release Notes section.
 
 All package parameters are passed to the Visual Studio installer, enabling full customization of the installation. The possible parameters are [described here](https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio). The package passes `--norestart --wait` by default, and `--quiet`, unless `--passive` is specified in the package parameters.
 
@@ -43,6 +38,8 @@ This command will install Visual Studio Build Tools with all available workloads
 
     choco install visualstudio2017buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional --passive --locale en-US"
 
+[More package parameter examples](https://github.com/jberezanski/ChocolateyPackages/blob/master/chocolatey-visualstudio.extension/EXAMPLES.md)
+
 ### Notes
 
 A reboot may be required after (or even _before_) installing/uninstalling this package.
@@ -52,14 +49,25 @@ If control over reboots is required, it is advisable to install the dependencies
 ##### Software
 [Visual Studio 2017 release notes](https://www.visualstudio.com/en-us/news/releasenotes/vs2017-relnotes)
 ##### Package
-15.8.6.0:
-- Package metadata updated for Visual Studio 2017 version 15.8.6 (the native installer always installs the latest released Visual Studio 2017 build).
+15.9.7.0:
+- Package metadata updated for Visual Studio 2017 version 15.9.7 (the native installer always installs the latest released Visual Studio 2017 build).
 - Updated bootstrapper url.
 
-[Package parameter examples](https://github.com/jberezanski/ChocolateyPackages/blob/master/chocolatey-visualstudio.extension/EXAMPLES.md)
+#### Available workload packages
+- [Azure development build tools](https://chocolatey.org/packages/visualstudio2017-workload-azurebuildtools)
+- [Data storage and processing build tools](https://chocolatey.org/packages/visualstudio2017-workload-databuildtools)
+- [.NET desktop build tools](https://chocolatey.org/packages/visualstudio2017-workload-manageddesktopbuildtools)
+- [.NET Core build tools](https://chocolatey.org/packages/visualstudio2017-workload-netcorebuildtools)
+- [Node.js build tools](https://chocolatey.org/packages/visualstudio2017-workload-nodebuildtools)
+- [Office/SharePoint build tools](https://chocolatey.org/packages/visualstudio2017-workload-officebuildtools)
+- [Universal Windows Platform build tools](https://chocolatey.org/packages/visualstudio2017-workload-universalbuildtools)
+- [Visual C++ build tools](https://chocolatey.org/packages/visualstudio2017-workload-vctools)
+- [Visual Studio extension development build tools](https://chocolatey.org/packages/visualstudio2017-workload-visualstudioextensionbuildtools)
+- [Web development build tools](https://chocolatey.org/packages/visualstudio2017-workload-webbuildtools)
+- [Mobile Development with .NET](https://chocolatey.org/packages/visualstudio2017-workload-xamarinbuildtools)
     </releaseNotes>
     <dependencies>
-      <dependency id="chocolatey-visualstudio.extension" version="1.7.0" />
+      <dependency id="chocolatey-visualstudio.extension" version="1.7.1" />
       <dependency id="KB2919355" version="1.0.20160915" /> <!-- for Win8.1/2012R2 -->
       <dependency id="KB2999226" version="1.0.20161201" />
       <dependency id="dotnet4.6.2" version="4.6.01590.20170129" />

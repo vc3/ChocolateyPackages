@@ -40,6 +40,7 @@ Install-ChocolateyPackage
       [string] $ProgramsAndFeaturesDisplayName = $ApplicationName,
       [string] $VisualStudioYear,
       [string] $Product,
+      [bool] $Preview,
       [version] $DesiredProductVersion
     )
     if ($Env:ChocolateyPackageDebug -ne $null)
@@ -48,19 +49,21 @@ Install-ChocolateyPackage
         $DebugPreference = 'Continue'
         Write-Warning "VerbosePreference and DebugPreference set to Continue due to the presence of ChocolateyPackageDebug environment variable"
     }
-    Write-Debug "Running 'Install-VisualStudio' for $PackageName with ApplicationName:'$ApplicationName' Url:'$Url' Checksum:$Checksum ChecksumType:$ChecksumType InstallerTechnology:'$InstallerTechnology' ProgramsAndFeaturesDisplayName:'$ProgramsAndFeaturesDisplayName' VisualStudioYear:'$VisualStudioYear' Product:'$Product' DesiredProductVersion:'$DesiredProductVersion'";
+    Write-Debug "Running 'Install-VisualStudio' for $PackageName with ApplicationName:'$ApplicationName' Url:'$Url' Checksum:$Checksum ChecksumType:$ChecksumType InstallerTechnology:'$InstallerTechnology' ProgramsAndFeaturesDisplayName:'$ProgramsAndFeaturesDisplayName' VisualStudioYear:'$VisualStudioYear' Product:'$Product' Preview:'$Preview' DesiredProductVersion:'$DesiredProductVersion'";
 
     $packageParameters = Parse-Parameters $env:chocolateyPackageParameters
     $creatingLayout = $packageParameters.ContainsKey('layout')
     $assumeNewVS2017Installer = $InstallerTechnology -eq 'WillowVS2017OrLater'
 
-    if ($VisualStudioYear -ne '' -and $Product -ne '')
+    $channelReference = $null
+    $productReference = $null
+    if ($VisualStudioYear -ne '')
     {
-        $productReference = Get-VSProductReference -VisualStudioYear $VisualStudioYear -Product $Product
-    }
-    else
-    {
-        $productReference = $null
+        $channelReference = Get-VSChannelReference -VisualStudioYear $VisualStudioYear -Preview $Preview
+        if ($Product -ne '')
+        {
+            $productReference = Get-VSProductReference -ChannelReference $channelReference -Product $Product
+        }
     }
 
     if (-not $creatingLayout)
@@ -86,7 +89,7 @@ Install-ChocolateyPackage
                         Start-VSModifyOperation `
                             -PackageName $PackageName `
                             -ArgumentList @() `
-                            -VisualStudioYear $VisualStudioYear `
+                            -ChannelReference $channelReference `
                             -ApplicableProducts @($Product) `
                             -OperationTexts @('update', 'updating', 'update') `
                             -Operation 'update' `
@@ -96,7 +99,8 @@ Install-ChocolateyPackage
                             -BootstrapperChecksum $Checksum `
                             -BootstrapperChecksumType $ChecksumType `
                             -ProductReference $productReference `
-                            -UseBootstrapper
+                            -UseBootstrapper `
+                            -ProductInstance $products
                     }
                     else
                     {
@@ -150,7 +154,7 @@ Install-ChocolateyPackage
 
         if ($assumeNewVS2017Installer)
         {
-            Assert-VSInstallerUpdated -PackageName $PackageName -PackageParameters $PackageParameters -ProductReference $productReference -Url $Url -Checksum $Checksum -ChecksumType $ChecksumType
+            Assert-VSInstallerUpdated -PackageName $PackageName -PackageParameters $PackageParameters -ChannelReference $channelReference -Url $Url -Checksum $Checksum -ChecksumType $ChecksumType
         }
 
         $silentArgs = Generate-InstallArgumentsString -parameters $packageParameters -adminFile $adminFile -logFilePath $logFilePath -assumeNewVS2017Installer:$assumeNewVS2017Installer

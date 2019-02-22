@@ -1,5 +1,18 @@
 ﻿# CHANGELOG
 
+## Version 1.8.0
+
+- Install-VisualStudio, Add-VisualStudioWorkload/Component and Remove-VisualStudioProduct/Workload/Component now support preview releases (via a new -Preview parameter) and Visual Studio 2019 (-VisualStudioYear 2019).
+- Remove-VisualStudioWorkload/Component no longer acts like Add-VisualStudioWorkload/Component if the user passes the '--add' package parameter to `choco uninstall`.
+- Fixed determination of outcome of a Visual Studio update operation.
+- Visual Studio 2017+ modify/update/uninstall operations now act on either official or preview product instances, but never on both kinds at the same time. This enables developing independent package families for both kinds.
+
+## Version 1.7.1
+
+- Works around an issue in the Visual Studio Installer (https://github.com/electron/electron/issues/12695, https://github.com/nodejs/node/issues/24360) by ensuring the NODE_OPTIONS environment variable is not passed to the Visual Studio Installer ([GH-56](https://github.com/jberezanski/ChocolateyPackages/pull/56)).
+- Fixed offline installation from layout ([GH-51](https://github.com/jberezanski/ChocolateyPackages/issues/51)).
+- The workaround for undesired vs_Setup.exe behavior when updating the Visual Studio Installer is now only applied to affected vs_Setup.exe versions (15.6.*).
+
 ## Version 1.7.0
 
 - New helper: Uninstall-VisualStudioVsixExtension.

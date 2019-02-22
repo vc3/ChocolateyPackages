@@ -2,10 +2,10 @@
 {
 <#
 .SYNOPSIS
-Installs or updates the Visual Studio 2017 Installer.
+Installs or updates the Visual Studio Installer.
 
 .DESCRIPTION
-This function checks for the presence of the Visual Studio 2017 Installer.
+This function checks for the presence of the Visual Studio Installer.
 If the Installer is not present, it is installed using the bootstrapper application
 (e.g. vs_FeedbackClient.exe), either downloaded from the provided $Url or indicated
 via the 'bootstrapperPath' package parameter (which takes precedence).
@@ -23,6 +23,8 @@ If the Installer is present, it will be updated/reinstalled if:
       [string] $ChecksumType,
       [Alias('RequiredVersion')] [version] $RequiredInstallerVersion,
       [version] $RequiredEngineVersion,
+      [ValidateSet('2017', '2019')] [string] $VisualStudioYear = '2017',
+      [switch] $Preview,
       [switch] $Force
     )
     if ($Env:ChocolateyPackageDebug -ne $null)
@@ -35,5 +37,9 @@ If the Installer is present, it will be updated/reinstalled if:
 
     $packageParameters = Parse-Parameters $env:chocolateyPackageParameters
 
-    Install-VSInstaller -PackageParameters $packageParameters @PSBoundParameters
+    $channelReference = Get-VSChannelReference -VisualStudioYear $VisualStudioYear -Preview:$Preview
+    $PSBoundParameters.Remove('VisualStudioYear')
+    $PSBoundParameters.Remove('Preview')
+
+    Install-VSInstaller -PackageParameters $packageParameters -ChannelReference $channelReference @PSBoundParameters
 }

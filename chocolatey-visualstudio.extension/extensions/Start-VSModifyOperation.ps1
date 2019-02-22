@@ -4,7 +4,7 @@
     param(
         [Parameter(Mandatory = $true)] [string] $PackageName,
         [AllowEmptyCollection()] [AllowEmptyString()] [Parameter(Mandatory = $true)] [string[]] $ArgumentList,
-        [Parameter(Mandatory = $true)] [string] $VisualStudioYear,
+        [Parameter(Mandatory = $true)] [PSObject] $ChannelReference,
         [Parameter(Mandatory = $true)] [string[]] $ApplicableProducts,
         [Parameter(Mandatory = $true)] [string[]] $OperationTexts,
         [ValidateSet('modify', 'uninstall', 'update')] [string] $Operation = 'modify',
@@ -15,9 +15,15 @@
         [string] $BootstrapperChecksum,
         [string] $BootstrapperChecksumType,
         [PSObject] $ProductReference,
-        [switch] $UseBootstrapper
+        [switch] $UseBootstrapper,
+        [PSObject[]] $ProductInstance
     )
-    Write-Debug "Running 'Start-VSModifyOperation' with PackageName:'$PackageName' ArgumentList:'$ArgumentList' VisualStudioYear:'$VisualStudioYear' ApplicableProducts:'$ApplicableProducts' OperationTexts:'$OperationTexts' Operation:'$Operation' RequiredProductVersion:'$RequiredProductVersion' BootstrapperUrl:'$BootstrapperUrl' BootstrapperChecksum:'$BootstrapperChecksum' BootstrapperChecksumType:'$BootstrapperChecksumType'";
+    Write-Debug "Running 'Start-VSModifyOperation' with PackageName:'$PackageName' ArgumentList:'$ArgumentList' ChannelReference:'$ChannelReference' ApplicableProducts:'$ApplicableProducts' OperationTexts:'$OperationTexts' Operation:'$Operation' RequiredProductVersion:'$RequiredProductVersion' BootstrapperUrl:'$BootstrapperUrl' BootstrapperChecksum:'$BootstrapperChecksum' BootstrapperChecksumType:'$BootstrapperChecksumType' ProductReference:'$ProductReference' UseBootstrapper:'$UseBootstrapper'";
+
+    if ($ProductReference -eq $null -and $Operation -eq 'update')
+    {
+        throw 'ProductReference is mandatory for update operations.'
+    }
 
     $frobbed, $frobbing, $frobbage = $OperationTexts
 
@@ -72,6 +78,30 @@
         {
             Write-Warning 'Parameter issue: channelId is ignored when installPath is specified.'
         }
+
+        $installedProducts = Resolve-VSProductInstance -AnyProductAndChannel -PackageParameters $PackageParameters
+        if (($installedProducts | Measure-Object).Count -gt 0)
+        {
+            # Should be only one, but it is not guaranteed, hence the loop.
+            foreach ($productInfo in $installedProducts)
+            {
+                if ($productInfo.channelId -ne $ChannelReference.ChannelId)
+                {
+                    Write-Warning "Product at path '$($productInfo.installationPath)' has channel id '$($productInfo.channelId)', expected '$($ChannelReference.ChannelId)'."
+                }
+
+                if ($ProductReference -ne $null -and $productInfo.productId -ne $ProductReference.ProductId)
+                {
+                    Write-Warning "Product at path '$($productInfo.installationPath)' has product id '$($productInfo.productId)', expected '$($ProductReference.ProductId)'."
+                }
+
+                $baseArgumentSet['__internal_productReference'] = New-VSProductReference -ChannelId $productInfo.channelId -ProductId $productInfo.productId -ChannelUri $productInfo.channelUri -InstallChannelUri $productInfo.installChannelUri
+            }
+        }
+        else
+        {
+            Write-Warning "Did not detect any installed Visual Studio products at path $($baseArgumentSet['installPath'])."
+        }
     }
     elseif ($baseArgumentSet.ContainsKey('productId'))
     {
@@ -79,6 +109,8 @@
         {
             throw "Parameter error: when productId is specified, channelId must be specified, too."
         }
+
+        $baseArgumentSet['__internal_productReference'] = New-VSProductReference -ChannelId $baseArgumentSet['channelId'] -ProductId $baseArgumentSet['productId']
     }
     elseif ($baseArgumentSet.ContainsKey('channelId'))
     {
@@ -86,21 +118,37 @@
     }
     else
     {
-        $installedProducts = Get-WillowInstalledProducts -VisualStudioYear $VisualStudioYear
-        if (($installedProducts | Measure-Object).Count -eq 0)
+        if (($ProductInstance | Measure-Object).Count -ne 0)
         {
-            throw "Unable to detect any supported Visual Studio $VisualStudioYear product. You may try passing --installPath or both --productId and --channelId parameters."
+            $installedProducts = $ProductInstance
+        }
+        else
+        {
+            $installedProducts = Resolve-VSProductInstance -ChannelReference $ChannelReference -PackageParameters $PackageParameters
+            if (($installedProducts | Measure-Object).Count -eq 0)
+            {
+                throw "Unable to detect any supported Visual Studio product. You may try passing --installPath or both --productId and --channelId parameters."
+            }
         }
 
         if ($Operation -eq 'modify')
         {
-            if ($baseArgumentSet.ContainsKey('add'))
+            # The VS instance filtering logic should be based on the primary operation,
+            # i.e. 'add' for Add-VisualStudio* and 'remove' for Remove-VisualStudio*.
+            # This can be extrapolated from ArgumentList, which is only set by those cmdlets, so trustworthy.
+            $addArgumentIsPresent = $ArgumentList -contains 'add'
+            $removeArgumentIsPresent = $ArgumentList -contains 'remove'
+            if ($addArgumentIsPresent -and $removeArgumentIsPresent)
+            {
+                throw "Unsupported scenario: both 'add' and 'remove' are present in ArgumentList"
+            }
+            elseif ($addArgumentIsPresent)
             {
                 $packageIdsList = $baseArgumentSet['add']
                 $unwantedPackageSelector = { $productInfo.selectedPackages.ContainsKey($_) }
                 $unwantedStateDescription = 'contains'
             }
-            elseif ($baseArgumentSet.ContainsKey('remove'))
+            elseif ($removeArgumentIsPresent)
             {
                 $packageIdsList = $baseArgumentSet['remove']
                 $unwantedPackageSelector = { -not $productInfo.selectedPackages.ContainsKey($_) }
@@ -108,7 +156,7 @@
             }
             else
             {
-                throw "Unsupported scenario: neither 'add' nor 'remove' is present in parameters collection"
+                throw "Unsupported scenario: neither 'add' nor 'remove' is present in ArgumentList"
             }
         }
         elseif (@('uninstall', 'update') -contains $Operation)
@@ -189,7 +237,7 @@
 
             $argumentSet = $baseArgumentSet.Clone()
             $argumentSet['installPath'] = $productInfo.installationPath
-            $argumentSet['__internal_productReference'] = New-VSProductReference -ChannelId $productInfo.channelId -ProductId $productInfo.productid -ChannelUri $productInfo.channelUri -InstallChannelUri $productInfo.installChannelUri
+            $argumentSet['__internal_productReference'] = New-VSProductReference -ChannelId $productInfo.channelId -ProductId $productInfo.productId -ChannelUri $productInfo.channelUri -InstallChannelUri $productInfo.installChannelUri
             $argumentSets += $argumentSet
         }
     }
@@ -248,6 +296,12 @@
             $argumentSet.Remove('__internal_productReference')
         }
 
+        $thisChannelReference = $ChannelReference
+        if ($thisProductReference -ne $null)
+        {
+            $thisChannelReference = Convert-VSProductReferenceToChannelReference -ProductReference $thisProductReference
+        }
+
         $shouldFixInstaller = $false
         if ($installer -eq $null)
         {
@@ -278,7 +332,7 @@
 
             if ($PSCmdlet.ShouldProcess("Visual Studio Installer", "update"))
             {
-                Assert-VSInstallerUpdated -PackageName $PackageName -PackageParameters $PackageParameters -ProductReference $thisProductReference -Url $BootstrapperUrl -Checksum $BootstrapperChecksum -ChecksumType $BootstrapperChecksumType -UseInstallChannelUri:$useInstallChannelUri
+                Assert-VSInstallerUpdated -PackageName $PackageName -PackageParameters $PackageParameters -ChannelReference $thisChannelReference -Url $BootstrapperUrl -Checksum $BootstrapperChecksum -ChecksumType $BootstrapperChecksumType -UseInstallChannelUri:$useInstallChannelUri
                 $installerUpdated = $true
                 $shouldFixInstaller = $false
                 $installer = Get-VisualStudioInstaller
@@ -359,10 +413,11 @@
 
         if ($processed -and $Operation -eq 'update')
         {
-            $instance = Resolve-VSProductInstance -ProductReference $productReference -PackageParameters $packageParameters
-            if (($instance | Measure-Object).Count -eq 1)
+            $instance = Resolve-VSProductInstance -ProductReference $thisProductReference -PackageParameters $argumentSet
+            $instanceCount = ($instance | Measure-Object).Count
+            if ($instanceCount -eq 1)
             {
-                $currentProductVersion = [version]$productInfo.installationVersion
+                $currentProductVersion = [version]$instance.installationVersion
                 if ($DesiredProductVersion -ne $null)
                 {
                     if ($currentProductVersion -ge $DesiredProductVersion)
@@ -376,6 +431,10 @@
                 }
 
                 Write-Verbose "$productDescription is now at version $currentProductVersion."
+            }
+            elseif ($instanceCount -eq 0)
+            {
+                Write-Warning "Unable to detect the updated $productDescription instance. This might mean that update failed. "
             }
         }
 
