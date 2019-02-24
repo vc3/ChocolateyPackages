@@ -22,25 +22,45 @@ $downloadArguments = @{
 
 Get-ChocolateyWebFile @downloadArguments | Out-Null
 
+$accessViolationCode = 0xC0000005
 $safeLogPath = Get-SafeLogPath
 $installerExeArguments = @{
     packageName = $packageName
     file = $downloadFilePath
     silentArgs = ('/Quiet /NoRestart /Log "{0}\{1}_{2}_{3:yyyyMMddHHmmss}.log"' -f $safeLogPath, $packageName, $version, (Get-Date))
     validExitCodes = @(
-        0, # success
+        0 # success
         3010 # success, restart required
+        $accessViolationCode # installer crash (access violation), but may occur at the very end, after the devpack is installed
     )
 }
 
 Invoke-CommandWithTempPath -TempPath $safeLogPath -ScriptBlock { Install-ChocolateyInstallPackage @installerExeArguments }
 
+Write-Warning "ChocolateyExitCode: ${Env:ChocolateyExitCode}"
 if ($Env:ChocolateyExitCode -eq '3010')
 {
     Write-Warning "A restart is required to finalize $productNameWithVersion installation."
 }
+elseif ($Env:ChocolateyExitCode -eq $accessViolationCode)
+{
+    $mscorlibPath = "${Env:ProgramFiles(x86)}\Reference Assemblies\Microsoft\Framework\.NETFramework\v${version}\mscorlib.dll"
+    Write-Warning "The native installer crashed, checking if it managed to install the devpack before the crash"
+    if (Test-Path -Path $mscorlibPath)
+    {
+        Write-Warning "mscorlib.dll found: $mscorlibPath"
+        Write-Warning 'This probably means the devpack got installed successfully, despite the installer crash'
+    }
+    else
+    {
+        Write-Warning "mscorlib.dll not found in expected location: $mscorlibPath"
+        Write-Warning 'This probably means the installer crashed before it could fully install the devpack'
+        throw "The native devpack installer crashed with code 0x$($accessViolationCode.ToString('X'))"
+    }
+}
 else
 {
+    Write-Warning "NOT 3010 or $accessViolationCode"
     if ($Env:ChocolateyExitCode -eq $null)
     {
         Write-Host "A restart may be required to finalize $productNameWithVersion installation."
