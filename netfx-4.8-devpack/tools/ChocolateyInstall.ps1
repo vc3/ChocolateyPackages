@@ -73,6 +73,7 @@ $exitCodeHandler = {
             Write-Verbose "mscorlib.dll found: $mscorlibPath"
             Write-Verbose 'This probably means the devpack got installed successfully, despite the installer crash'
             $installResult.ShouldFailInstallation = $false
+            $installResult.ExitCode = $ERROR_SUCCESS # to avoid triggering failure detection in choco.exe
         }
         else
         {
