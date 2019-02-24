@@ -29,6 +29,7 @@ $STATUS_ACCESS_VIOLATION = 0xC0000005
 $safeLogPath = Get-SafeLogPath
 $installerExeArguments = @{
     packageName = $packageName
+    fileType = 'exe'
     file = $downloadFilePath
     silentArgs = ('/Quiet /NoRestart /Log "{0}\{1}_{2}_{3:yyyyMMddHHmmss}.log"' -f $safeLogPath, $packageName, $version, (Get-Date))
     validExitCodes = @(
