@@ -70,6 +70,7 @@ configuration NetFxDevPackCrashRepro
     }
 }
 $ProgressPreference = 'SilentlyContinue'
+[Net.ServicePointManager]::SecurityProtocol = 'Tls12,Tls11,Tls'
 Invoke-WebRequest -Uri 'http://aka.ms/vscollect.exe' -OutFile 'C:\Install\Collect.exe'
 Invoke-WebRequest -Uri 'https://live.sysinternals.com/Procmon.exe' -OutFile 'C:\Install\Procmon.exe'
 foreach ($dp in $devpacks)
