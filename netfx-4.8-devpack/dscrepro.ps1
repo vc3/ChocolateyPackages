@@ -121,7 +121,8 @@ configuration NetFxDevPackCrashReproViaChoco
         {
             Name = 'netfx-4.8-devpack'
             Ensure = 'Present'
-            chocoParams = '--pre'
+            chocoParams = '--pre -v'
+            Source = 'https://myget.org/F/jberezanski-chocolateypackages-dev/api/v2'
             DependsOn = '[cChocoInstaller]choco'
         }
     }
