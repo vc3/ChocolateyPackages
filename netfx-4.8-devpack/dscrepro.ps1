@@ -104,3 +104,27 @@ $cd = @{
  -ConfigurationData $cd
  #>
  
+ 
+Install-Module cChoco
+configuration NetFxDevPackCrashReproViaChoco
+{
+    Import-DscResource -Module cChoco
+
+    Node localhost
+    {
+        cChocoInstaller choco
+        {
+            InstallDir = 'C:\ProgramData\Chocolatey'
+        }
+
+        cChocoPackageInstaller dp48
+        {
+            Name = 'netfx-4.8-devpack'
+            Ensure = 'Present'
+            chocoParams = '--pre'
+            DependsOn = '[cChocoInstaller]choco'
+        }
+    }
+}
+NetFxDevPackCrashReproViaChoco -OutputPath 'C:\Install'
+Start-DscConfiguration -Path 'C:\Install' -ComputerName 'localhost' -Verbose -Wait -Force
