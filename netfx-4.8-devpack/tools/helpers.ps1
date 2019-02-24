@@ -1,4 +1,7 @@
 ﻿$scriptDirectory = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
+. (Join-Path -Path $scriptDirectory -ChildPath 'Install-ChocolateyInstallPackageAndHandleExitCode.ps1')
+. (Join-Path -Path $scriptDirectory -ChildPath 'Get-NativeInstallerExitCode.ps1')
+. (Join-Path -Path $scriptDirectory -ChildPath 'Set-PowerShellExitCode.ps1')
 
 function Get-SafeLogPath
 {
