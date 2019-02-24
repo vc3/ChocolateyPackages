@@ -103,9 +103,10 @@ $cd = @{
                 #PsDscRunAsCredential = (Get-Credential -Credential "${Env:ComputerName}\userfordsc") # fails with this too
  -ConfigurationData $cd
  #>
- 
- 
-Install-Module cChoco
+
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Install-Module cChoco -Force
+Enable-PSRemoting -Force -SkipNetworkProfileCheck
 configuration NetFxDevPackCrashReproViaChoco
 {
     Import-DscResource -Module cChoco
@@ -117,13 +118,61 @@ configuration NetFxDevPackCrashReproViaChoco
             InstallDir = 'C:\ProgramData\Chocolatey'
         }
 
+        cChocoPackageInstaller dotnetfx
+        {
+            Name = 'dotnetfx'
+            Ensure = 'Present'
+            DependsOn = '[cChocoInstaller]choco'
+        }
+
+        cChocoPackageInstaller dotnet47
+        {
+            Name = 'dotnet4.7'
+            Ensure = 'Present'
+            DependsOn = '[cChocoInstaller]choco'
+        }
+
+        cChocoPackageInstaller KB4019990
+        {
+            Name = 'KB4019990'
+            Ensure = 'Present'
+            DependsOn = '[cChocoInstaller]choco'
+        }
+
+        cChocoPackageInstaller dp47
+        {
+            Name = 'netfx-4.7-devpack'
+            Ensure = 'Present'
+            chocoParams = '--pre -v'
+            Source = 'https://myget.org/F/jberezanski-chocolateypackages-dev/api/v2'
+            DependsOn = @('[cChocoInstaller]choco', '[cChocoPackageInstaller]dotnet47', '[cChocoPackageInstaller]KB4019990')
+        }
+
+        cChocoPackageInstaller dp471
+        {
+            Name = 'netfx-4.7.1-devpack'
+            Ensure = 'Present'
+            chocoParams = '--pre -v'
+            Source = 'https://myget.org/F/jberezanski-chocolateypackages-dev/api/v2'
+            DependsOn = @('[cChocoInstaller]choco', '[cChocoPackageInstaller]dotnetfx')
+        }
+
+        cChocoPackageInstaller dp472
+        {
+            Name = 'netfx-4.7.2-devpack'
+            Ensure = 'Present'
+            chocoParams = '--pre -v'
+            Source = 'https://myget.org/F/jberezanski-chocolateypackages-dev/api/v2'
+            DependsOn = @('[cChocoInstaller]choco', '[cChocoPackageInstaller]dotnetfx')
+        }
+
         cChocoPackageInstaller dp48
         {
             Name = 'netfx-4.8-devpack'
             Ensure = 'Present'
             chocoParams = '--pre -v'
             Source = 'https://myget.org/F/jberezanski-chocolateypackages-dev/api/v2'
-            DependsOn = '[cChocoInstaller]choco'
+            DependsOn = @('[cChocoInstaller]choco', '[cChocoPackageInstaller]dotnetfx')
         }
     }
 }
