@@ -7,7 +7,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force
 New-Item -ItemType Directory -Path 'C:\Install'
 $ProgressPreference = 'SilentlyContinue'
 if ([Environment]::OSVersion.Version -ge ([Version]'10.0')) {
-    $ndp = @{ Uri = 'https://download.microsoft.com/download/6/5/7/6577634A-8D5D-4558-BA22-A81CC6D5BB06/NDP48-Preview-x86-x64-AllOS-ENU.exe'; FileName = 'NDP48-Preview-x86-x64-AllOS-ENU.exe' }
+    $ndp = @{ Uri = 'https://download.visualstudio.microsoft.com/download/pr/9854b5f2-2341-4136-ad7d-1d881ab8d603/a59983c9bf08c7ae7200f356c9a604c1/NDP48-Preview-x86-x64-AllOS-ENU.exe'; FileName = 'NDP48-Preview-x86-x64-AllOS-ENU.exe' }
 } else {
     $ndp = @{ Uri = 'https://download.microsoft.com/download/6/E/4/6E48E8AB-DC00-419E-9704-06DD46E5F81D/NDP472-KB4054530-x86-x64-AllOS-ENU.exe'; FileName = 'NDP472-KB4054530-x86-x64-AllOS-ENU.exe' }
 }
@@ -34,7 +34,7 @@ $devpacks = @(
     @{ Version = '4.7'; ProductId = 'EC073C7E-990D-4BB1-BFA9-45C6704E3571'; FileName = 'NDP47-DevPack-KB3186612-ENU.exe'; Uri = 'https://download.microsoft.com/download/A/1/D/A1D07600-6915-4CB8-A931-9A980EF47BB7/NDP47-DevPack-KB3186612-ENU.exe' }
     @{ Version = '4.7.1'; ProductId = '5686C5E9-A3B3-451E-A2EA-4C246CDE5CC9'; FileName = 'NDP471-DevPack-ENU.exe'; Uri = 'https://download.microsoft.com/download/9/0/1/901B684B-659E-4CBD-BEC8-B3F06967C2E7/NDP471-DevPack-ENU.exe' }
     @{ Version = '4.7.2'; ProductId = '1784A8CD-F7FE-47E2-A87D-1F31E7242D0D'; FileName = 'NDP472-DevPack-ENU.exe'; Uri = 'https://download.microsoft.com/download/3/B/F/3BFB9C35-405D-45DF-BDAF-0EB57D047888/NDP472-DevPack-ENU.exe' }
-    @{ Version = '4.8'; ProductId = '601414BB-D48C-4EF8-B32C-AB7084B8E18A'; FileName = 'NDP48-DevPack-ENU.exe'; Uri = 'https://download.microsoft.com/download/6/5/7/6577634A-8D5D-4558-BA22-A81CC6D5BB06/NDP48-DevPack-ENU.exe' } # build 3646
+    @{ Version = '4.8'; ProductId = '601414BB-D48C-4EF8-B32C-AB7084B8E18A'; FileName = 'NDP48-DevPack-ENU.exe'; Uri = 'https://download.visualstudio.microsoft.com/download/pr/9854b5f2-2341-4136-ad7d-1d881ab8d603/e3a011f2a41a59b086f78d64e1c7a3fc/NDP48-DevPack-ENU.exe' } # build 3745
 )
 configuration NetFxDevPackCrashRepro
 {
